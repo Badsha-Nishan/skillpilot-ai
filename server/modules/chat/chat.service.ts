@@ -3,31 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { GoogleGenAI } from "@google/genai";
+import { groq } from "../../services/groq.client";
 import { ConversationModel } from "./conversation.model";
 import { LearningPathModel } from "../learningPath/learningPath.model";
-
-let aiInstance: GoogleGenAI | null = null;
-
-function getAiClient(): GoogleGenAI {
-  if (!aiInstance) {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error(
-        "GEMINI_API_KEY environment variable is not configured. Please define it in your Secrets / .env configuration."
-      );
-    }
-    aiInstance = new GoogleGenAI({
-      apiKey,
-      httpOptions: {
-        headers: {
-          "User-Agent": "aistudio-build",
-        },
-      },
-    });
-  }
-  return aiInstance;
-}
 
 export class ChatService {
   /**
@@ -45,17 +23,22 @@ export class ChatService {
       const paths = await LearningPathModel.find({}).limit(50);
       if (paths && paths.length > 0) {
         learningPathsList = paths
-          .map((p) => `- "${p.title}" (${p.level} level, duration: ${p.duration}) - ${p.shortDescription}`)
+          .map(
+            (p) =>
+              `- "${p.title}" (${p.level} level, duration: ${p.duration}) - ${p.shortDescription}`
+          )
           .join("\n");
       } else {
-        learningPathsList = "None currently published. Encourage the user to explore and create one!";
+        learningPathsList =
+          "None currently published. Encourage the user to explore and create one!";
       }
     } catch (e) {
       console.error("Failed to retrieve learning paths for chat context:", e);
       learningPathsList = "Unable to retrieve learning paths at this moment.";
     }
 
-    const { currentLevel, learningStyle, roadmapTitle, roadmapDifficulty } = params;
+    const { currentLevel, learningStyle, roadmapTitle, roadmapDifficulty } =
+      params;
 
     return `You are "SkillPilot AI Mentor", an elite Senior Software Engineer, Technical Architect, and Career Coach. 
 Your goal is to guide students and professionals on their software engineering journeys. 
@@ -63,7 +46,13 @@ Your goal is to guide students and professionals on their software engineering j
 ### USER CONTEXT
 - Current Skill Level: ${currentLevel || "Beginner"}
 - Learning Style: ${learningStyle || "Practical/Hands-on"}
-${roadmapTitle ? `- Active Learning Roadmap: "${roadmapTitle}" (Difficulty: ${roadmapDifficulty || "N/A"})` : "- Active Learning Roadmap: None selected yet"}
+${
+  roadmapTitle
+    ? `- Active Learning Roadmap: "${roadmapTitle}" (Difficulty: ${
+        roadmapDifficulty || "N/A"
+      })`
+    : "- Active Learning Roadmap: None selected yet"
+}
 
 ### AVAILABLE LEARNING PATHS (Recommend these when relevant to their questions):
 ${learningPathsList}
@@ -78,7 +67,7 @@ ${learningPathsList}
   }
 
   /**
-   * Send a message to Gemini and get a response (standard)
+   * Send a message to Groq and get a response (standard)
    */
   static async getReply(params: {
     userId: string;
@@ -89,8 +78,6 @@ ${learningPathsList}
     roadmapTitle?: string;
     roadmapDifficulty?: string;
   }): Promise<string> {
-    const ai = getAiClient();
-
     // 1. Load or initialize conversation
     let conv = await ConversationModel.findOne({
       userId: params.userId,
@@ -108,29 +95,28 @@ ${learningPathsList}
     // 2. Fetch system instruction
     const systemInstruction = await this.getSystemInstruction(params);
 
-    // 3. Format history for Gemini
-    const contents = conv.messages.map((m) => ({
-      role: m.role === "user" ? "user" : "model",
-      parts: [{ text: m.content }],
+    // 3. Format history for Groq
+    const historyMessages = conv.messages.slice(-30).map((m) => ({
+      role: m.role === "user" ? ("user" as const) : ("assistant" as const),
+      content: m.content,
     }));
 
-    // Append new user message
-    contents.push({
-      role: "user",
-      parts: [{ text: params.message }],
-    });
-
     // 4. Generate content
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents,
-      config: {
-        systemInstruction,
-        temperature: 0.7,
-      },
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        { role: "system", content: systemInstruction },
+        ...historyMessages,
+        { role: "user", content: params.message },
+      ],
+      temperature: 0.7,
+      max_tokens: 1500,
+      top_p: 0.9,
     });
 
-    const replyText = response.text || "I was unable to formulate a response. Please try again.";
+    const replyText =
+      completion.choices[0]?.message?.content ||
+      "I was unable to formulate a response. Please try again.";
 
     // 5. Append both messages to database history
     conv.messages.push({
@@ -163,8 +149,6 @@ ${learningPathsList}
     onChunk: (text: string) => void;
     onComplete: (fullText: string) => void;
   }): Promise<void> {
-    const ai = getAiClient();
-
     let conv = await ConversationModel.findOne({
       userId: params.userId,
       conversationId: params.conversationId,
@@ -180,31 +164,28 @@ ${learningPathsList}
 
     const systemInstruction = await this.getSystemInstruction(params);
 
-    const contents = conv.messages.map((m) => ({
-      role: m.role === "user" ? "user" : "model",
-      parts: [{ text: m.content }],
+    const historyMessages = conv.messages.map((m) => ({
+      role: m.role === "user" ? ("user" as const) : ("assistant" as const),
+      content: m.content,
     }));
 
-    contents.push({
-      role: "user",
-      parts: [{ text: params.message }],
-    });
-
-    const responseStream = await ai.models.generateContentStream({
-      model: "gemini-3.5-flash",
-      contents,
-      config: {
-        systemInstruction,
-        temperature: 0.7,
-      },
+    const stream = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        { role: "system", content: systemInstruction },
+        ...historyMessages,
+        { role: "user", content: params.message },
+      ],
+      temperature: 0.7,
+      stream: true,
     });
 
     let fullText = "";
-    for await (const chunk of responseStream) {
-      const chunkText = chunk.text || "";
-      if (chunkText) {
-        fullText += chunkText;
-        params.onChunk(chunkText);
+    for await (const chunk of stream) {
+      const text = chunk.choices?.[0]?.delta?.content || "";
+      if (text) {
+        fullText += text;
+        params.onChunk(text);
       }
     }
 

@@ -3,6 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import dotenv from "dotenv";
+
+dotenv.config();
+
+console.log("Gemini Key Loaded:", !!process.env.GEMINI_API_KEY);
+console.log("Gemini Key Prefix:", process.env.GEMINI_API_KEY?.slice(0, 6));
+
 import path from "path";
 import express from "express";
 import app from "./server/app";
@@ -20,21 +27,25 @@ async function bootstrap() {
 
   // Integrates Vite development server middleware OR static assets in production
   if (process.env.NODE_ENV !== "production") {
-    console.log("⚙️  Running in DEVELOPMENT mode. Initializing Vite middleware...");
+    console.log(
+      "⚙️  Running in DEVELOPMENT mode. Initializing Vite middleware..."
+    );
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
-    
+
     // Mount Vite dev server middlewares
     app.use(vite.middlewares);
   } else {
-    console.log("📦 Running in PRODUCTION mode. Serving pre-compiled static assets...");
+    console.log(
+      "📦 Running in PRODUCTION mode. Serving pre-compiled static assets..."
+    );
     const distPath = path.join(process.cwd(), "dist");
-    
+
     // Serve static files from the build output directory
     app.use(express.static(distPath));
-    
+
     // Serve single-page app index on any unknown route request
     app.get("*", (req: any, res: any) => {
       res.sendFile(path.join(distPath, "index.html"));
@@ -42,7 +53,9 @@ async function bootstrap() {
   }
 
   app.listen(PORT, HOST, () => {
-    console.log(`🌐 SkillPilot AI System is broadcasting on http://${HOST}:${PORT}`);
+    console.log(
+      `🌐 SkillPilot AI System is broadcasting on http://${HOST}:${PORT}`
+    );
   });
 }
 
