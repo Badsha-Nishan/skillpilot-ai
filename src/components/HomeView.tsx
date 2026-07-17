@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { skillFormSchema, SkillFormInput } from "../utils/validation";
@@ -35,11 +35,27 @@ import api from "../services/api";
 
 interface HomeViewProps {
   id?: string;
-  backendHealthy: boolean | null;
-  triggerHealthCheck: () => void;
+  backendHealthy?: boolean | null;
+  triggerHealthCheck?: () => void;
 }
 
 export default function HomeView({ id, backendHealthy, triggerHealthCheck }: HomeViewProps) {
+  const [isHealthy, setIsHealthy] = useState<boolean | null>(backendHealthy ?? null);
+
+  useEffect(() => {
+    if (backendHealthy !== undefined) {
+      setIsHealthy(backendHealthy);
+    } else {
+      api.get("/health")
+        .then((res: any) => {
+          setIsHealthy(res && res.status === "healthy");
+        })
+        .catch(() => {
+          setIsHealthy(false);
+        });
+    }
+  }, [backendHealthy]);
+
   // Local state representing client-side tracking in Phase 1
   const [skills, setSkills] = useState([
     { id: "1", name: "TypeScript", category: "Languages", proficiency: "Expert" },
@@ -159,9 +175,9 @@ export default function HomeView({ id, backendHealthy, triggerHealthCheck }: Hom
               </span>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className={`h-2.5 w-2.5 rounded-full ${backendHealthy ? "bg-emerald-500" : "bg-rose-500"}`} />
+                  <span className={`h-2.5 w-2.5 rounded-full ${isHealthy ? "bg-emerald-500" : "bg-rose-500"}`} />
                   <span className="text-sm font-medium text-slate-700">
-                    Backend Connection: {backendHealthy ? "ONLINE (Express v4)" : "OFFLINE / CONNECTING"}
+                    Backend Connection: {isHealthy ? "ONLINE (Express v4)" : "OFFLINE / CONNECTING"}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">

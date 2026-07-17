@@ -4,15 +4,26 @@
  */
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Compass, MoveLeft, AlertOctagon } from "lucide-react";
 import Button from "./Button";
 
 interface NotFoundViewProps {
   id?: string;
-  onGoHome: () => void;
+  onGoHome?: () => void;
 }
 
 export default function NotFoundView({ id, onGoHome }: NotFoundViewProps) {
+  const navigate = useNavigate();
+
+  const handleGoHome = () => {
+    if (onGoHome) {
+      onGoHome();
+    } else {
+      navigate("/");
+    }
+  };
+
   return (
     <div
       id={id}
@@ -36,7 +47,7 @@ export default function NotFoundView({ id, onGoHome }: NotFoundViewProps) {
         <Button
           variant="outline"
           leftIcon={<MoveLeft className="h-4 w-4" />}
-          onClick={onGoHome}
+          onClick={handleGoHome}
         >
           Back to Dashboard Base
         </Button>

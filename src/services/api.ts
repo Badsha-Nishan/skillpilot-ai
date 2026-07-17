@@ -17,7 +17,10 @@ const api: AxiosInstance = axios.create({
 // Request interceptor for injection of authorization headers or logs if required later
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Auth token handling would go here in Phase 2
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {

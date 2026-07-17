@@ -10,6 +10,11 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import { apiLimiter } from "./middlewares/rateLimiter";
 import healthRouter from "./routes/health";
+import authRouter from "./modules/auth/auth.routes";
+import learningPathRouter from "./modules/learningPath/learningPath.routes";
+import dashboardRouter from "./modules/dashboard/dashboard.routes";
+import aiRouter from "./modules/ai/ai.routes";
+import chatRouter from "./modules/chat/chat.routes";
 import errorHandler from "./middlewares/errorHandler";
 
 const app = express();
@@ -42,6 +47,11 @@ app.use("/api", apiLimiter);
 
 // Register API Endpoints
 app.use("/api/health", healthRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/learning-paths", learningPathRouter);
+app.use("/api/dashboard", dashboardRouter);
+app.use("/api/ai", aiRouter);
+app.use("/api/chat", chatRouter);
 
 // Global Error Handler Middleware
 app.use(errorHandler);
