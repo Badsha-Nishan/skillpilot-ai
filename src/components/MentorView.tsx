@@ -63,7 +63,11 @@ export default function MentorView() {
     setLoadingHistory(true);
     try {
       const response: any = await api.get("/chat/history");
-      if (response && response.status === "success" && Array.isArray(response.data)) {
+      if (
+        response &&
+        response.status === "success" &&
+        Array.isArray(response.data)
+      ) {
         const history: Conversation[] = response.data;
         setConversations(history);
 
@@ -105,7 +109,10 @@ export default function MentorView() {
       return {
         currentLevel: active.criteria?.currentLevel || "Beginner",
         learningStyle: active.criteria?.learningStyle || "Practical",
-        roadmapTitle: active.roadmap?.roadmapTitle || active.criteria?.careerGoal || "Custom Roadmap",
+        roadmapTitle:
+          active.roadmap?.roadmapTitle ||
+          active.criteria?.careerGoal ||
+          "Custom Roadmap",
         roadmapDifficulty: active.roadmap?.difficultyLevel || "Medium",
       };
     }
@@ -126,7 +133,9 @@ export default function MentorView() {
     let isNewSession = false;
 
     if (!currentId) {
-      currentId = `chat-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      currentId = `chat-${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(2, 9)}`;
       setSelectedConvId(currentId);
       isNewSession = true;
     }
@@ -168,7 +177,9 @@ export default function MentorView() {
 
       if (!response.ok) {
         const errJson = await response.json().catch(() => ({}));
-        throw new Error(errJson.message || "Failed to establish flight mentorship connection.");
+        throw new Error(
+          errJson.message || "Failed to establish flight mentorship connection."
+        );
       }
 
       const reader = response.body?.getReader();
@@ -195,12 +206,17 @@ export default function MentorView() {
               if (dataContent) {
                 const parsed = JSON.parse(dataContent);
                 if (parsed.chunk) {
-                  // Update the last message in state with the incoming chunk
+                  // Update the last message in state with the incoming chunk safely
                   setActiveMessages((prev) => {
+                    if (prev.length === 0) return prev;
                     const next = [...prev];
-                    const last = next[next.length - 1];
+                    const lastIndex = next.length - 1;
+                    const last = next[lastIndex];
                     if (last && last.role === "model") {
-                      last.content += parsed.chunk;
+                      next[lastIndex] = {
+                        ...last,
+                        content: last.content + parsed.chunk,
+                      };
                     }
                     return next;
                   });
@@ -212,14 +228,20 @@ export default function MentorView() {
                 }
               }
             } catch (e) {
-              console.warn("Parse error inside stream line processing:", e, trimmed);
+              console.warn(
+                "Parse error inside stream line processing:",
+                e,
+                trimmed
+              );
             }
           }
         }
       }
     } catch (error: any) {
       console.error("Streaming message execution error:", error);
-      toast.error(error.message || "Failed to receive response from career mentor.");
+      toast.error(
+        error.message || "Failed to receive response from career mentor."
+      );
       // If error occurs, remove the empty model placeholder
       setActiveMessages((prev) => prev.filter((m) => m.content !== ""));
     } finally {
@@ -235,7 +257,11 @@ export default function MentorView() {
   };
 
   const handleDeleteConversation = async (conversationId: string) => {
-    if (!window.confirm("Are you sure you want to permanently delete this mentorship log?")) {
+    if (
+      !window.confirm(
+        "Are you sure you want to permanently delete this mentorship log?"
+      )
+    ) {
       return;
     }
 
@@ -268,14 +294,16 @@ export default function MentorView() {
             AI Career Mentor
           </h1>
           <p className="text-slate-500 text-xs mt-1">
-            Engage with a senior software architect who understands your active roadmaps and recommends courses.
+            Engage with a senior software architect who understands your active
+            roadmaps and recommends courses.
           </p>
         </div>
 
         {/* Saved Roadmap Context Selection dropdown */}
         <div className="flex flex-col gap-1 w-full sm:w-auto sm:min-w-[240px]">
           <span className="text-[10px] text-slate-400 font-mono uppercase font-bold flex items-center gap-1">
-            <BookOpen className="h-3 w-3 text-indigo-500" /> Active Roadmap Context
+            <BookOpen className="h-3 w-3 text-indigo-500" /> Active Roadmap
+            Context
           </span>
           {savedRoadmaps.length === 0 ? (
             <div className="text-xs bg-slate-50 border border-slate-200 text-slate-500 px-3 py-2 rounded-xl">
@@ -289,7 +317,8 @@ export default function MentorView() {
             >
               {savedRoadmaps.map((r) => (
                 <option key={r.id} value={r.id}>
-                  {r.roadmap?.roadmapTitle || r.criteria?.careerGoal} ({r.criteria?.currentLevel})
+                  {r.roadmap?.roadmapTitle || r.criteria?.careerGoal} (
+                  {r.criteria?.currentLevel})
                 </option>
               ))}
             </select>
@@ -324,7 +353,11 @@ export default function MentorView() {
       {/* Main chat viewport */}
       <div className="flex-grow min-h-0 grid grid-cols-1 md:grid-cols-12 gap-6 pb-2">
         {/* Sidebar logs column */}
-        <div className={`md:col-span-4 h-full min-h-0 ${showSidebarMobile ? "block" : "hidden md:block"}`}>
+        <div
+          className={`md:col-span-4 h-full min-h-0 ${
+            showSidebarMobile ? "block" : "hidden md:block"
+          }`}
+        >
           <ChatSidebar
             conversations={conversations}
             selectedId={selectedConvId}
@@ -335,7 +368,11 @@ export default function MentorView() {
         </div>
 
         {/* Active chat log column */}
-        <div className={`md:col-span-8 h-full min-h-0 ${!showSidebarMobile ? "block" : "hidden md:block"}`}>
+        <div
+          className={`md:col-span-8 h-full min-h-0 ${
+            !showSidebarMobile ? "block" : "hidden md:block"
+          }`}
+        >
           <ChatWindow
             messages={activeMessages}
             isTyping={isTyping}
