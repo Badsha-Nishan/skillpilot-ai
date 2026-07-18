@@ -27,7 +27,9 @@ interface SavedRoadmapItem {
 
 export default function RoadmapPage() {
   const [loading, setLoading] = useState(false);
-  const [currentRoadmap, setCurrentRoadmap] = useState<RoadmapOutput | null>(null);
+  const [currentRoadmap, setCurrentRoadmap] = useState<RoadmapOutput | null>(
+    null
+  );
   const [savedHistory, setSavedHistory] = useState<SavedRoadmapItem[]>([]);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string>("");
 
@@ -52,13 +54,17 @@ export default function RoadmapPage() {
     setSelectedHistoryId("");
 
     try {
-      toast.loading("Analyzing profile & requesting AI mentor...", { id: "generating" });
+      toast.loading("Analyzing profile & requesting AI mentor...", {
+        id: "generating",
+      });
 
       const res: any = await api.post("/ai/roadmap", values);
-      const output: RoadmapOutput = res.data.data;
+      const output: RoadmapOutput = res.data;
 
       setCurrentRoadmap(output);
-      toast.success("AI Roadmap successfully engineered!", { id: "generating" });
+      toast.success("AI Roadmap successfully engineered!", {
+        id: "generating",
+      });
     } catch (error: any) {
       console.error("Roadmap generation failed:", error);
       const errMsg =
@@ -75,7 +81,9 @@ export default function RoadmapPage() {
     if (!currentRoadmap) return;
 
     // Check if already saved in history
-    const existing = savedHistory.find((item) => item.roadmap.title === currentRoadmap.title);
+    const existing = savedHistory.find(
+      (item) => item.roadmap.title === currentRoadmap.title
+    );
     if (existing) {
       toast.error("This roadmap trajectory is already saved locally!");
       return;
@@ -83,7 +91,13 @@ export default function RoadmapPage() {
 
     const newItem: SavedRoadmapItem = {
       id: "rm_" + Date.now(),
-      timestamp: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp:
+        new Date().toLocaleDateString() +
+        " " +
+        new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       criteria: {
         careerGoal: currentRoadmap.title,
         currentLevel: currentRoadmap.difficulty,
@@ -136,7 +150,8 @@ export default function RoadmapPage() {
             AI Learning Roadmap Generator
           </h1>
           <p className="text-slate-500 text-sm mt-1">
-            Formulate bespoke, week-by-week technical syllabi calibrated precisely to your study constraints.
+            Formulate bespoke, week-by-week technical syllabi calibrated
+            precisely to your study constraints.
           </p>
         </div>
       </div>
@@ -182,7 +197,8 @@ export default function RoadmapPage() {
                 {savedHistory.length === 0 ? (
                   <div className="text-center py-8 px-4">
                     <p className="text-xs text-slate-400 font-mono font-medium leading-relaxed">
-                      No local roadmap blueprints archived. Generate a custom syllabus to save coordinates.
+                      No local roadmap blueprints archived. Generate a custom
+                      syllabus to save coordinates.
                     </p>
                   </div>
                 ) : (
