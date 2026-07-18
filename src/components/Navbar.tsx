@@ -5,7 +5,21 @@
 
 import React, { useState, useEffect } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Compass, Shield, Plus, ListCollapse, LogIn, LogOut, UserPlus, Globe, Sparkles, Map, Cpu, Menu, X } from "lucide-react";
+import {
+  Compass,
+  Shield,
+  Plus,
+  ListCollapse,
+  LogIn,
+  LogOut,
+  UserPlus,
+  Globe,
+  Sparkles,
+  Map,
+  Cpu,
+  Menu,
+  X,
+} from "lucide-react";
 import { useAuth } from "../providers/AuthProvider";
 import api from "../services/api";
 
@@ -23,7 +37,12 @@ export default function Navbar({ id }: NavbarProps) {
   const checkBackendHealth = async () => {
     try {
       const response: any = await api.get("/health");
-      if (response && response.status === "healthy") {
+      if (
+        response &&
+        (response.success ||
+          response.status === "healthy" ||
+          response.data?.status === "healthy")
+      ) {
         setBackendHealthy(true);
       } else {
         setBackendHealthy(false);
@@ -59,7 +78,8 @@ export default function Navbar({ id }: NavbarProps) {
                 <Compass className="h-5 w-5" />
               </div>
               <span className="text-xl font-bold text-slate-900 tracking-tight">
-                SkillPilot <span className="text-brand-600 font-medium">AI</span>
+                SkillPilot{" "}
+                <span className="text-brand-600 font-medium">AI</span>
               </span>
             </Link>
 
@@ -158,10 +178,16 @@ export default function Navbar({ id }: NavbarProps) {
             {isAuthenticated && user ? (
               <div className="flex items-center gap-4">
                 {/* Profile Avatar */}
-                <Link to="/dashboard/profile" className="flex items-center gap-2.5">
+                <Link
+                  to="/dashboard/profile"
+                  className="flex items-center gap-2.5"
+                >
                   <div className="relative">
                     <img
-                      src={user.photoURL || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"}
+                      src={
+                        user.photoURL ||
+                        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"
+                      }
                       alt={user.name}
                       referrerPolicy="no-referrer"
                       className="h-8 w-8 rounded-full border border-slate-200 object-cover"
@@ -169,7 +195,9 @@ export default function Navbar({ id }: NavbarProps) {
                     <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-white" />
                   </div>
                   <div className="hidden lg:flex flex-col text-left">
-                    <span className="text-xs font-bold text-slate-800 leading-none">{user.name}</span>
+                    <span className="text-xs font-bold text-slate-800 leading-none">
+                      {user.name}
+                    </span>
                     <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider mt-0.5">
                       {user.role} Vector
                     </span>
@@ -220,7 +248,11 @@ export default function Navbar({ id }: NavbarProps) {
                 aria-expanded={isOpen}
                 aria-label="Toggle navigation menu"
               >
-                {isOpen ? <X className="h-5.5 w-5.5" /> : <Menu className="h-5.5 w-5.5" />}
+                {isOpen ? (
+                  <X className="h-5.5 w-5.5" />
+                ) : (
+                  <Menu className="h-5.5 w-5.5" />
+                )}
               </button>
             </div>
           </div>
@@ -304,7 +336,11 @@ export default function Navbar({ id }: NavbarProps) {
                 }`}
               />
               <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
-                {backendHealthy === true ? "healthy" : backendHealthy === false ? "offline" : "connecting"}
+                {backendHealthy === true
+                  ? "healthy"
+                  : backendHealthy === false
+                  ? "offline"
+                  : "connecting"}
               </span>
             </span>
           </div>
