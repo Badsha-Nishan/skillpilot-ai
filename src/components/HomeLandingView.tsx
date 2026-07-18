@@ -19,6 +19,8 @@ import { useAuth } from "../providers/AuthProvider";
 import Button from "./Button";
 import FeaturesSection from "./FeaturesSection";
 import HowItWorksSection from "./HowItWorksSection";
+import AICapabilitiesSection from "./AICapabilitiesSection";
+import StatisticsSection from "./StatisticsSection";
 
 export default function HomeLandingView() {
   const { isAuthenticated } = useAuth();
@@ -85,6 +87,8 @@ export default function HomeLandingView() {
 
       <FeaturesSection />
       <HowItWorksSection />
+      <AICapabilitiesSection />
+      <StatisticsSection />
 
       {/* Grid of Key Features (Swiss Style Minimal Cards) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
