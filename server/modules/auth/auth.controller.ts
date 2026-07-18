@@ -22,7 +22,11 @@ export class AuthController {
         field: err.path.join("."),
         message: err.message,
       }));
-      throw new ApiError(400, "Validation of registration parameters failed.", errorDetails);
+      throw new ApiError(
+        400,
+        "Validation of registration parameters failed.",
+        errorDetails
+      );
     }
 
     const { name, email, password } = parseResult.data;
@@ -35,9 +39,15 @@ export class AuthController {
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
-    res.status(201).json(
-      new ApiResponse(201, result, "User profile registered and onboarded successfully.")
-    );
+    res
+      .status(201)
+      .json(
+        new ApiResponse(
+          201,
+          result,
+          "User profile registered and onboarded successfully."
+        )
+      );
   });
 
   /**
@@ -51,7 +61,11 @@ export class AuthController {
         field: err.path.join("."),
         message: err.message,
       }));
-      throw new ApiError(400, "Validation of login credentials failed.", errorDetails);
+      throw new ApiError(
+        400,
+        "Validation of login credentials failed.",
+        errorDetails
+      );
     }
 
     const { email, password } = parseResult.data;
@@ -64,9 +78,15 @@ export class AuthController {
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
-    res.status(200).json(
-      new ApiResponse(200, result, "User identity authenticated successfully.")
-    );
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          result,
+          "User identity authenticated successfully."
+        )
+      );
   });
 
   /**
@@ -76,8 +96,34 @@ export class AuthController {
     if (!req.user) {
       throw new ApiError(401, "No authenticated user session found.");
     }
-    res.status(200).json(
-      new ApiResponse(200, { user: req.user }, "Authenticated user identity retrieved successfully.")
-    );
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          { user: req.user },
+          "Authenticated user identity retrieved successfully."
+        )
+      );
+  });
+
+  /**
+   * Log out existing user by clearing the JWT token cookie
+   */
+  static logout = asyncHandler(async (req: Request, res: Response) => {
+    res.cookie("token", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      expires: new Date(0), // Set expiry date in the past to delete the cookie
+    });
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          null,
+          "User logged out and session closed successfully."
+        )
+      );
   });
 }

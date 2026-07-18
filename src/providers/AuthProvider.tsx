@@ -30,7 +30,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem("token")
+  );
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Initialize and check user session from JWT token on mount
@@ -75,7 +77,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(userData);
       toast.success(`Welcome back, ${userData.name}! Identity verified.`);
     } catch (error: any) {
-      const message = error.message || "Failed to authenticate. Please check your credentials.";
+      const message =
+        error.message ||
+        "Failed to authenticate. Please check your credentials.";
       toast.error(message);
       throw error;
     } finally {
@@ -84,10 +88,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Handle Register Event
-  const registerUser = async (name: string, email: string, password: string) => {
+  const registerUser = async (
+    name: string,
+    email: string,
+    password: string
+  ) => {
     setIsLoading(true);
     try {
-      const response: any = await api.post("/auth/register", { name, email, password });
+      const response: any = await api.post("/auth/register", {
+        name,
+        email,
+        password,
+      });
       const { user: userData, token: userToken } = response.data;
 
       localStorage.setItem("token", userToken);
@@ -95,7 +107,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(userData);
       toast.success(`Account registered! Welcome onboard, ${userData.name}.`);
     } catch (error: any) {
-      const message = error.message || "Registration failed. Please check the form fields.";
+      const message =
+        error.message || "Registration failed. Please check the form fields.";
       toast.error(message);
       throw error;
     } finally {
@@ -105,6 +118,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Handle Logout Event
   const logout = () => {
+    // Fire background call to clear backend cookie
+    api.post("/auth/logout").catch((err) => {
+      console.warn("Backend cookie clear failed during logout:", err);
+    });
     localStorage.removeItem("token");
     setToken(null);
     setUser(null);

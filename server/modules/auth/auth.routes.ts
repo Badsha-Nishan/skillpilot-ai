@@ -15,5 +15,6 @@ router.post("/login", AuthController.login);
 
 // Protected Authentication Endpoints
 router.get("/me", verifyAuth, AuthController.getMe);
+router.post("/logout", verifyAuth, AuthController.logout);
 
 export default router;
