@@ -59,7 +59,7 @@ export default function RoadmapPage() {
       });
 
       const res: any = await api.post("/ai/roadmap", values);
-      const output: RoadmapOutput = res.data;
+      const output: RoadmapOutput = res.data.learningRoadmap;
 
       setCurrentRoadmap(output);
       toast.success("AI Roadmap successfully engineered!", {
@@ -75,6 +75,11 @@ export default function RoadmapPage() {
     } finally {
       setLoading(false);
     }
+
+    const res: any = await api.post("/ai/roadmap", values);
+
+    console.log("Roadmap API Response:", res);
+    console.log("Roadmap Data:", res.data);
   };
 
   const handleSaveLocally = () => {
