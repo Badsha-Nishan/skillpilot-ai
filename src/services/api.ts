@@ -6,12 +6,12 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from "axios";
 
 const api: AxiosInstance = axios.create({
-  baseURL: "/api",
+  baseURL: import.meta.env.VITE_API_URL || "/api",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // For cookie exchange if needed later
+  withCredentials: true,
 });
 
 // Request interceptor for injection of authorization headers or logs if required later
@@ -34,7 +34,9 @@ api.interceptors.response.use(
     return response.data;
   },
   (error) => {
-    const message = error.response?.data?.message || "Something went wrong. Please try again.";
+    const message =
+      error.response?.data?.message ||
+      "Something went wrong. Please try again.";
     const formattedError = {
       message,
       status: error.response?.status,

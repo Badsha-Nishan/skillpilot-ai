@@ -7,16 +7,13 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-console.log("Gemini Key Loaded:", !!process.env.GEMINI_API_KEY);
-console.log("Gemini Key Prefix:", process.env.GEMINI_API_KEY?.slice(0, 6));
-
 import path from "path";
 import express from "express";
 import app from "./server/app";
 import { connectDB } from "./server/config/db";
 import { createServer as createViteServer } from "vite";
 
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 const HOST = "0.0.0.0";
 
 async function bootstrap() {
